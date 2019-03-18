@@ -100,11 +100,10 @@ class FeatureExtractor():
 
         print("calc NCC...")
         # calc NCC
-        F = self.template_feature_map.numpy()[0].astype(np.float32)
-        M = self.image_feature_map.numpy()[0].astype(np.float32)
-
         if use_cython:
             import cython_files.cython_calc_NCC as cython_calc_NCC
+            M = self.image_feature_map.numpy()[0].astype(np.float32)
+            F = self.template_feature_map.numpy()[0].astype(np.float32)
             self.NCC = np.zeros(
                 (M.shape[1] - F.shape[1]) * (M.shape[2] - F.shape[2])).astype(np.float32)
             cython_calc_NCC.c_calc_NCC(M.flatten().astype(np.float32), np.array(M.shape).astype(
@@ -125,7 +124,19 @@ class FeatureExtractor():
         scores = []
         for max_index in max_indices:
             i_star, j_star = max_index
-            NCC_part = self.NCC[i_star-1:i_star+2, j_star-2:j_star+2]
+            NCC_part = np.zeros([3,4])
+            if i_star>=1 and j_star>=2:
+                NCC_part = self.NCC[i_star-1:i_star+2, j_star-2:j_star+2]
+            elif i_star == 0 and j_star>=2:
+                NCC_part[1:3,:] = self.NCC[0:i_star+2, j_star-2:j_star+2]
+            elif i_star == 0 and j_star == 1:
+                NCC_part[1:3,1:4] = self.NCC[0:i_star+2, j_star-1:j_star+2]
+            elif i_star == 0 and j_star == 0:
+                NCC_part[1:3,1:4] = self.NCC[0:i_star+2, j_star-1:j_star+2]
+            elif i_star>=1 and j_star == 1:
+                NCC_part[:,1:4] = self.NCC[i_star-1:i_star+2, j_star-1:j_star+2]
+            elif i_star>=1 and j_star == 0:
+                NCC_part[:,2:4] = self.NCC[i_star-1:i_star+2, j_star:j_star+2]
 
             x_center = (j_star + self.template_feature_map.size()
                         [-1]/2) * image.size()[-1] // self.image_feature_map.size()[-1]
