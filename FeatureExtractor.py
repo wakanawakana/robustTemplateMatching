@@ -137,7 +137,9 @@ class FeatureExtractor():
                 NCC_part[:,1:4] = self.NCC[i_star-1:i_star+2, j_star-1:j_star+2]
             elif i_star>=1 and j_star == 0:
                 NCC_part[:,2:4] = self.NCC[i_star-1:i_star+2, j_star:j_star+2]
-
+            
+            NCC_part_sum = np.sum(NCC_part)
+            
             x_center = (j_star + self.template_feature_map.size()
                         [-1]/2) * image.size()[-1] // self.image_feature_map.size()[-1]
             y_center = (i_star + self.template_feature_map.size()
